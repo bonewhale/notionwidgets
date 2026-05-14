@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>핸드아웃 제작소</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Gothic&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans KR',sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh;display:flex;flex-direction:column;font-size:13px;}
+
+/* ── Header / Nav ── */
+header{background:#090c12;border-bottom:1px solid #1e293b;padding:0 20px;display:flex;align-items:center;gap:0;flex-shrink:0;height:46px;}
+header h1{font-size:15px;color:#f1c40f;font-family:'Nanum Myeongjo',serif;letter-spacing:2px;margin-right:24px;white-space:nowrap;}
+.nav-btn{padding:0 18px;height:46px;background:transparent;border:none;color:#64748b;cursor:pointer;font-size:13px;font-family:'Noto Sans KR',sans-serif;border-bottom:2px solid transparent;transition:all .15s;}
+.nav-btn.active{color:#f1c40f;border-bottom-color:#f1c40f;}
+.nav-btn:hover:not(.active){color:#94a3b8;}
+
+/* ── Shared layout ── */
+.view{display:none;flex:1;overflow:hidden;}
+.view.active{display:flex;}
+
+/* ══════════════════════════════════════════
+   VIEW 1 — 핸드아웃 만들기
+══════════════════════════════════════════ */
+#v-make{flex-direction:row;}
+
+/* Template sidebar */
+.tpl-sidebar{width:190px;background:#090c12;border-right:1px solid #1e293b;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
+.tpl-sidebar-scroll{flex:1;overflow-y:auto;padding:10px;}
+.tpl-sec-label{font-size:10px;color:#475569;letter-spacing:1px;text-transform:uppercase;margin:8px 0 6px;}
+.tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;}
+.tpl-thumb{cursor:pointer;border-radius:4px;overflow:hidden;border:2px solid transparent;transition:all .15s;aspect-ratio:1/1.4;position:relative;}
+.tpl-thumb:hover{border-color:#f1c40f;transform:scale(1.03);}
+.tpl-thumb.active{border-color:#f1c40f;box-shadow:0 0 8px rgba(241,196,15,.3);}
+.tpl-thumb .t-inner{width:100%;height:100%;padding:5px 6px;display:flex;flex-direction:column;}
+.tpl-thumb .t-top{height:32%;background:rgba(255,255,255,.15);margin-bottom:3px;border-radius:2px;background-size:cover;background-position:center;}
+.tpl-thumb .t-title{font-size:7px;font-weight:700;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:2px;}
+.tpl-thumb .t-sub{font-size:6px;text-align:center;opacity:.6;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:3px;}
+.tpl-thumb .t-body{flex:1;font-size:5.5px;opacity:.55;overflow:hidden;line-height:1.3;}
+.tpl-thumb .t-bot{height:20%;background:rgba(255,255,255,.1);margin-top:3px;border-radius:2px;background-size:cover;background-position:center;}
+.tpl-thumb .t-label{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:8px;text-align:center;padding:2px;}
+.tpl-thumb .del-x{position:absolute;top:2px;right:2px;width:14px;height:14px;background:#e74c3c;border-radius:50%;border:none;color:#fff;font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;}
+.tpl-thumb:hover .del-x{display:flex;}
+.go-tpl-btn{margin:8px;flex-shrink:0;padding:8px;background:transparent;border:1px dashed #1e293b;color:#475569;border-radius:4px;cursor:pointer;font-size:11px;font-family:'Noto Sans KR',sans-serif;transition:all .15s;text-align:center;}
+.go-tpl-btn:hover{border-color:#f1c40f;color:#f1c40f;}
+
+/* Input panel */
+.inp-panel{width:260px;background:#0f1117;border-right:1px solid #1e293b;padding:16px;overflow-y:auto;flex-shrink:0;}
+.inp-panel h2{font-size:10px;color:#475569;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:11px;color:#64748b;margin-bottom:4px;}
+.fg input,.fg textarea{width:100%;background:#090c12;border:1px solid #1e293b;border-radius:3px;color:#e2e8f0;padding:7px 9px;font-family:'Noto Sans KR',sans-serif;font-size:13px;transition:border-color .15s;}
+.fg input:focus,.fg textarea:focus{outline:none;border-color:#f1c40f;}
+.fg textarea{min-height:120px;resize:vertical;line-height:1.65;}
+.no-sel{color:#334155;font-size:12px;padding:8px 0;}
+.inp-actions{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap;}
+.ibtn{padding:7px 14px;border-radius:3px;border:none;cursor:pointer;font-size:12px;font-family:'Noto Sans KR',sans-serif;transition:all .15s;font-weight:500;}
+.ibtn.save{background:#1e3a5f;color:#93c5fd;}
+.ibtn.save:hover{background:#1d4ed8;color:#fff;}
+.ibtn.jpeg{background:#f1c40f;color:#111;}
+.ibtn.jpeg:hover{background:#d4ac0d;}
+.ibtn.copy{background:#1e293b;color:#94a3b8;}
+.ibtn.copy:hover{background:#334155;}
+
+/* Preview panel */
+.prev-panel{flex:1;background:#070a10;display:flex;flex-direction:column;align-items:center;padding:20px;overflow:auto;gap:12px;}
+.prev-panel h2{font-size:10px;color:#475569;letter-spacing:1px;text-transform:uppercase;align-self:flex-start;}
+#ho-preview{/* handout renders here */}
+
+/* ══════════════════════════════════════════
+   VIEW 2 — 템플릿 관리
+══════════════════════════════════════════ */
+#v-tpl{flex-direction:row;}
+.tpl-list-panel{width:220px;background:#090c12;border-right:1px solid #1e293b;display:flex;flex-direction:column;padding:12px;gap:6px;overflow-y:auto;flex-shrink:0;}
+.tpl-list-panel h2{font-size:10px;color:#475569;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.tpl-list-item{padding:8px 10px;border-radius:4px;cursor:pointer;border:1px solid #1e293b;transition:all .15s;display:flex;align-items:center;justify-content:space-between;}
+.tpl-list-item:hover{border-color:#334155;background:#0f172a;}
+.tpl-list-item.active{border-color:#f1c40f;background:#0f172a;}
+.tpl-list-item .tl-name{font-size:12px;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tpl-list-item .tl-del{width:18px;height:18px;background:transparent;border:none;color:#475569;cursor:pointer;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:3px;}
+.tpl-list-item .tl-del:hover{background:#7f1d1d;color:#fca5a5;}
+.new-tpl-btn{padding:9px;background:transparent;border:1px dashed #1e293b;color:#475569;border-radius:4px;cursor:pointer;font-size:12px;font-family:'Noto Sans KR',sans-serif;transition:all .15s;text-align:center;flex-shrink:0;}
+.new-tpl-btn:hover{border-color:#f1c40f;color:#f1c40f;}
+
+/* Template builder form */
+.tpl-builder{flex:1;padding:20px 24px;overflow-y:auto;}
+.tpl-builder h2{font-size:14px;color:#e2e8f0;margin-bottom:18px;}
+.builder-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;}
+.bf{margin-bottom:0;}
+.bf label{display:block;font-size:11px;color:#64748b;margin-bottom:4px;}
+.bf input,.bf select{width:100%;background:#090c12;border:1px solid #1e293b;border-radius:3px;color:#e2e8f0;padding:6px 8px;font-family:'Noto Sans KR',sans-serif;font-size:12px;}
+.bf input:focus,.bf select:focus{outline:none;border-color:#f1c40f;}
+.bf input[type=color]{height:32px;padding:2px 3px;cursor:pointer;}
+.bf-full{grid-column:1/-1;}
+.color-size-row{display:flex;gap:8px;}
+.color-size-row .bf{flex:1;}
+.section-title{font-size:11px;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px;grid-column:1/-1;border-top:1px solid #1e293b;padding-top:12px;}
+
+/* Paste image areas */
+.paste-area{
+  grid-column:1/-1;border:2px dashed #1e293b;border-radius:6px;
+  min-height:80px;cursor:pointer;transition:all .2s;position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;background:#090c12;
+}
+.paste-area.focused{border-color:#f1c40f;background:#0a100a;}
+.paste-area.has-img{border-style:solid;border-color:#334155;padding:0;}
+.paste-area img{width:100%;display:block;max-height:200px;object-fit:cover;}
+.paste-area .pa-label{font-size:11px;color:#475569;pointer-events:none;padding:12px;}
+.paste-area .pa-label span{display:block;font-size:16px;margin-bottom:4px;text-align:center;}
+.paste-area .pa-clear{position:absolute;top:4px;right:4px;background:#7f1d1d;color:#fca5a5;border:none;border-radius:3px;padding:2px 6px;font-size:10px;cursor:pointer;z-index:10;}
+
+/* Builder preview */
+.builder-preview-section{grid-column:1/-1;margin-top:8px;}
+.builder-preview-inner{border:1px solid #1e293b;border-radius:4px;overflow:hidden;display:inline-block;}
+.builder-actions{display:flex;gap:8px;margin-top:12px;}
+.bbtn{padding:8px 20px;border-radius:3px;border:none;cursor:pointer;font-size:13px;font-family:'Noto Sans KR',sans-serif;font-weight:500;}
+.bbtn.save{background:#f1c40f;color:#111;}
+.bbtn.save:hover{background:#d4ac0d;}
+.bbtn.cancel{background:#1e293b;color:#94a3b8;}
+
+/* ══════════════════════════════════════════
+   VIEW 3 — 저장된 핸드아웃
+══════════════════════════════════════════ */
+#v-saved{flex-direction:column;padding:20px;overflow:auto;gap:14px;align-items:flex-start;}
+#v-saved h2{font-size:12px;color:#64748b;letter-spacing:1px;text-transform:uppercase;}
+.saved-grid{display:flex;flex-wrap:wrap;gap:16px;}
+.saved-card{border:1px solid #1e293b;border-radius:6px;overflow:hidden;cursor:pointer;transition:all .15s;width:200px;background:#090c12;}
+.saved-card:hover{border-color:#f1c40f;}
+.saved-card .sc-preview{width:200px;height:140px;overflow:hidden;position:relative;}
+.saved-card .sc-meta{padding:8px 10px;display:flex;justify-content:space-between;align-items:center;}
+.saved-card .sc-title{font-size:11px;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.saved-card .sc-del{background:transparent;border:none;color:#475569;cursor:pointer;font-size:14px;flex-shrink:0;}
+.saved-card .sc-del:hover{color:#fca5a5;}
+.saved-empty{color:#334155;font-size:13px;}
+
+/* ══════════════════════════════════════════
+   VIEW 4 — 공지사항
+══════════════════════════════════════════ */
+#v-notice{flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;}
+.notice-box{background:#090c12;border:1px solid #1e293b;border-radius:8px;padding:36px 44px;max-width:540px;width:100%;line-height:2;}
+.notice-box h2{font-size:14px;color:#f1c40f;letter-spacing:2px;margin-bottom:20px;font-family:'Nanum Myeongjo',serif;}
+.notice-box p{color:#94a3b8;font-size:13px;margin-bottom:12px;}
+.notice-box .notice-date{color:#475569;font-size:11px;margin-top:20px;border-top:1px solid #1e293b;padding-top:16px;}
+
+/* Copy options dropdown */
+.copy-wrap{position:relative;display:inline-block;}
+.copy-dropdown{
+  position:absolute;bottom:calc(100% + 4px);left:0;
+  background:#1e293b;border:1px solid #334155;border-radius:4px;
+  min-width:140px;overflow:hidden;z-index:100;
+  display:none;
+}
+.copy-dropdown.open{display:block;}
+.copy-dropdown button{
+  display:block;width:100%;padding:8px 14px;background:transparent;border:none;
+  color:#94a3b8;cursor:pointer;font-size:12px;font-family:'Noto Sans KR',sans-serif;
+  text-align:left;transition:background .1s;
+}
+.copy-dropdown button:hover{background:#334155;color:#e2e8f0;}
+
+/* ── Misc UI ── */
+.spinner-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:2000;}
+.spinner-overlay.hidden{display:none;}
+.spinner{width:32px;height:32px;border:3px solid #1e293b;border-top-color:#f1c40f;border-radius:50%;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:18px;right:18px;background:#1e293b;color:#e2e8f0;padding:10px 16px;border-radius:5px;font-size:12px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;border-left:3px solid #f1c40f;}
+.toast.show{opacity:1;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:#090c12;}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>핸드아웃 제작소</h1>
+  <button class="nav-btn active" data-view="v-make">핸드아웃 만들기</button>
+  <button class="nav-btn" data-view="v-tpl">템플릿 관리</button>
+  <button class="nav-btn" data-view="v-saved">저장된 핸드아웃</button>
+  <button class="nav-btn" data-view="v-notice">공지 사항</button>
+</header>
+
+<!-- ── VIEW 1: Make handout ── -->
+<div class="view active" id="v-make">
+  <div class="tpl-sidebar">
+    <div class="tpl-sidebar-scroll">
+      <div class="tpl-sec-label">커스텀 템플릿</div>
+      <div class="tpl-grid" id="custom-thumb-grid"></div>
+      <div id="no-custom-msg" style="font-size:11px;color:#334155;padding:4px 0 8px;">저장된 템플릿이 없습니다</div>
+    </div>
+    <button class="go-tpl-btn" id="go-tpl-btn">+ 템플릿 관리 →</button>
+  </div>
+  <div class="inp-panel">
+    <h2>내용 입력</h2>
+    <div id="inp-fields"><div class="no-sel">← 템플릿을 선택하세요</div></div>
+    <div class="inp-actions" id="inp-actions" style="display:none;">
+      <button class="ibtn save" id="btn-save-ho">저장</button>
+      <button class="ibtn jpeg" id="btn-jpeg">JPEG 저장</button>
+      <div class="copy-wrap">
+        <button class="ibtn copy" id="btn-copy">클립보드 복사 ▲</button>
+        <div class="copy-dropdown" id="copy-dropdown">
+          <button id="btn-copy-png">PNG 이미지로 복사</button>
+          <button id="btn-copy-table">표(HTML)로 복사</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="prev-panel">
+    <h2>미리보기</h2>
+    <div id="ho-preview"></div>
+  </div>
+</div>
+
+<!-- ── VIEW 2: Template manager ── -->
+<div class="view" id="v-tpl">
+  <div class="tpl-list-panel">
+    <h2>내 템플릿</h2>
+    <div id="tpl-list-items"></div>
+    <div id="tpl-list-empty" style="font-size:11px;color:#334155;padding:4px 0;">저장된 템플릿 없음</div>
+    <button class="new-tpl-btn" id="new-tpl-btn">+ 새 템플릿 만들기</button>
+    <div style="border-top:1px solid #1e293b;padding-top:10px;display:flex;flex-direction:column;gap:6px;">
+      <div style="font-size:10px;color:#475569;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;">내보내기 / 가져오기</div>
+      <button class="new-tpl-btn" id="export-tpl-btn">⬇ JSON으로 내보내기</button>
+      <label class="new-tpl-btn" for="import-tpl-input" style="cursor:pointer;text-align:center;">⬆ JSON 가져오기</label>
+      <input type="file" id="import-tpl-input" accept=".json" style="display:none;">
+    </div>
+  </div>
+  <div class="tpl-builder" id="tpl-builder">
+    <div id="builder-empty" style="color:#334155;font-size:13px;padding:20px 0;">왼쪽에서 템플릿을 선택하거나 새로 만드세요.</div>
+    <div id="builder-form" style="display:none;">
+      <h2 id="builder-title">새 템플릿</h2>
+      <div class="builder-grid">
+        <div class="bf">
+          <label>템플릿 이름 *</label>
+          <input type="text" id="b-name" placeholder="예: 검은 양피지">
+        </div>
+        <div class="bf">
+          <label>배경 색상</label>
+          <input type="color" id="b-bg" value="#1b3f3c">
+        </div>
+
+        <div class="section-title">상단 이미지</div>
+        <div class="paste-area" id="pa-top" tabindex="0">
+          <div class="pa-label"><span>🖼</span>클릭 후 Ctrl+V 로 붙여넣기</div>
+        </div>
+
+        <div class="section-title">제목 스타일</div>
+        <div class="color-size-row bf-full">
+          <div class="bf"><label>색상</label><input type="color" id="b-tc" value="#c49f58"></div>
+          <div class="bf"><label>크기 (px)</label><input type="number" id="b-ts" value="26" min="12" max="60"></div>
+          <div class="bf"><label>굵게</label><select id="b-tb"><option value="700">굵게</option><option value="400">보통</option></select></div>
+        </div>
+
+        <div class="section-title">부제목 스타일</div>
+        <div class="color-size-row bf-full">
+          <div class="bf"><label>색상</label><input type="color" id="b-sc" value="#597a75"></div>
+          <div class="bf"><label>크기 (px)</label><input type="number" id="b-ss" value="18" min="10" max="40"></div>
+          <div class="bf"><label>굵게</label><select id="b-sb"><option value="700">굵게</option><option value="400">보통</option></select></div>
+        </div>
+
+        <div class="section-title">본문 스타일</div>
+        <div class="color-size-row bf-full">
+          <div class="bf"><label>색상</label><input type="color" id="b-bc" value="#c49f58"></div>
+          <div class="bf"><label>크기 (px)</label><input type="number" id="b-bsz" value="14" min="10" max="30"></div>
+          <div class="bf"><label>정렬</label><select id="b-ba"><option value="left">왼쪽</option><option value="center">가운데</option></select></div>
+        </div>
+
+        <div class="bf bf-full">
+          <label>글꼴</label>
+          <select id="b-font">
+            <option value="'Nanum Myeongjo',serif">나눔 명조</option>
+            <option value="'Noto Serif KR',serif">Noto Serif KR</option>
+            <option value="'Noto Sans KR',sans-serif">Noto Sans KR (고딕)</option>
+            <option value="'Nanum Gothic',sans-serif">나눔 고딕</option>
+            <option value="'Malgun Gothic',sans-serif">맑은 고딕</option>
+            <option value="'Courier New',monospace">Courier New</option>
+            <option value="Georgia,serif">Georgia</option>
+          </select>
+        </div>
+
+        <div class="section-title">구분선 이미지 (선택)</div>
+        <div class="paste-area" id="pa-div" tabindex="0">
+          <div class="pa-label"><span>➖</span>클릭 후 Ctrl+V 로 붙여넣기</div>
+        </div>
+
+        <div class="section-title">하단 이미지</div>
+        <div class="paste-area" id="pa-bot" tabindex="0">
+          <div class="pa-label"><span>🖼</span>클릭 후 Ctrl+V 로 붙여넣기</div>
+        </div>
+
+        <div class="bf">
+          <label>내부 좌우 여백 (px)</label>
+          <input type="number" id="b-pad" value="28" min="0" max="80">
+        </div>
+        <div class="bf">
+          <label>카드 너비 (px)</label>
+          <input type="number" id="b-width" value="480" min="300" max="900">
+        </div>
+
+        <div class="section-title">미리보기</div>
+        <div class="builder-preview-section bf-full">
+          <div class="builder-preview-inner" id="builder-preview-inner">
+            <div id="builder-ho-preview" style="font-size:11px;color:#334155;padding:12px;">설정을 입력하면 미리보기가 표시됩니다</div>
+          </div>
+        </div>
+      </div>
+      <div class="builder-actions">
+        <button class="bbtn save" id="b-save-btn">저장</button>
+        <button class="bbtn cancel" id="b-cancel-btn">취소</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── VIEW 3: Saved handouts ── -->
+<div class="view" id="v-saved">
+  <h2>저장된 핸드아웃</h2>
+  <div class="saved-grid" id="saved-grid">
+    <div class="saved-empty">저장된 핸드아웃이 없습니다.</div>
+  </div>
+</div>
+
+<!-- ── VIEW 4: 공지사항 ── -->
+<div class="view" id="v-notice">
+  <div class="notice-box">
+    <h2>공지사항</h2>
+    <p>이 앱은 뼈고래(<strong style="color:#e2e8f0;">@bone_whale</strong>)가 Claude 의 도움으로 제작하였습니다.</p>
+    <p>개인적인 편의를 위해 제작되었으며, 타 저작권을 침해할 의도가 없음을 밝힙니다.</p>
+    <p>템플릿과 핸드아웃은 로컬 스토리지에 저장되므로, 다른 브라우저를 사용하거나 쿠키를 삭제할 경우 사라질 수 있습니다. 다만 JSON 내보내기/가져오기 기능을 통해 템플릿을 별도로 저장하거나 업로드할 수 있습니다.</p>
+    <p>사용 방법은 직관적으로 구성했지만, 어려운 점이 있다면 언제든지 연락해주세요.</p>
+    <p class="notice-date">2026.05.08 기준 공개 배포 예정이 없으므로 외부 공유는 삼가주세요.<br><br>ver 1.0</p>
+  </div>
+</div>
+
+<!-- Spinner -->
+<div class="spinner-overlay hidden" id="spinner"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════
+// UTILS
+// ════════════════════════════════
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+let toastT;
+function toast(msg, dur=2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function spin(on) { document.getElementById('spinner').classList.toggle('hidden', !on); }
+function uid() { return 'c' + Date.now() + Math.random().toString(36).slice(2,6); }
+
+// ════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.view).classList.add('active');
+    if (btn.dataset.view === 'v-saved') renderSavedView();
+    if (btn.dataset.view === 'v-tpl') renderTplList();
+    if (btn.dataset.view === 'v-make') renderMakeSidebar();
+  });
+});
+
+document.getElementById('go-tpl-btn').addEventListener('click', () => {
+  document.querySelector('[data-view="v-tpl"]').click();
+});
+
+// ════════════════════════════════
+// STORAGE
+// ════════════════════════════════
+function loadTemplates() {
+  try { return JSON.parse(localStorage.getItem('ho-templates') || '[]'); } catch { return []; }
+}
+function saveTemplates(arr) { localStorage.setItem('ho-templates', JSON.stringify(arr)); }
+
+function loadHandouts() {
+  try { return JSON.parse(localStorage.getItem('ho-saved') || '[]'); } catch { return []; }
+}
+function saveHandouts(arr) { localStorage.setItem('ho-saved', JSON.stringify(arr)); }
+
+// ════════════════════════════════
+// RENDER HANDOUT HTML
+// ════════════════════════════════
+function renderHO(tpl, data) {
+  const pad = tpl.pad || 28;
+  const w = tpl.width || 480;
+  const font = tpl.font || "'Noto Sans KR',sans-serif";
+  const bg = tpl.bgColor || '#1b3f3c';
+
+  const topImg = tpl.topImg
+    ? `<img src="${tpl.topImg}" style="width:100%;display:block;">`
+    : '';
+  const botImg = tpl.botImg
+    ? `<img src="${tpl.botImg}" style="width:100%;display:block;">`
+    : '';
+  const divImg = tpl.divImg
+    ? `<div style="text-align:center;padding:4px 0;"><img src="${tpl.divImg}" style="max-width:60%;display:inline-block;"></div>`
+    : `<div style="height:1px;background:${tpl.titleColor||'#c49f58'}44;margin:8px ${pad}px;"></div>`;
+
+  const title = data.title
+    ? `<div style="color:${tpl.titleColor||'#c49f58'};font-size:${tpl.titleSize||26}px;font-weight:${tpl.titleWeight||700};text-align:center;padding:18px ${pad}px 6px;font-family:${font};">${esc(data.title)}</div>`
+    : '';
+  const subtitle = data.subtitle
+    ? `<div style="color:${tpl.subtitleColor||'#597a75'};font-size:${tpl.subtitleSize||18}px;font-weight:${tpl.subtitleWeight||700};text-align:center;padding:2px ${pad}px 10px;font-family:${font};">${esc(data.subtitle)}</div>`
+    : '';
+  const body = data.body
+    ? `<div style="color:${tpl.bodyColor||'#c49f58'};font-size:${tpl.bodySize||14}px;text-align:${tpl.bodyAlign||'left'};padding:10px ${pad}px 18px;white-space:pre-wrap;word-break:break-word;line-height:1.85;font-family:${font};">${esc(data.body)}</div>`
+    : '';
+
+  return `<div style="width:${w}px;background:${bg};">${topImg}${title}${subtitle}${(data.title||data.subtitle)?divImg:''}${body}${botImg}</div>`;
+}
+
+// ════════════════════════════════
+// VIEW 1 — MAKE HANDOUT
+// ════════════════════════════════
+let activeTpl = null;
+let formData = {};
+
+function renderMakeSidebar() {
+  const templates = loadTemplates();
+  const grid = document.getElementById('custom-thumb-grid');
+  const noMsg = document.getElementById('no-custom-msg');
+  grid.innerHTML = '';
+  noMsg.style.display = templates.length ? 'none' : 'block';
+
+  templates.forEach(tpl => {
+    const el = document.createElement('div');
+    el.className = 'tpl-thumb';
+    el.dataset.id = tpl.id;
+    el.innerHTML = `
+      <div class="t-inner" style="background:${tpl.bgColor||'#1b3f3c'};color:${tpl.titleColor||'#c49f58'};">
+        ${tpl.topImg ? `<div class="t-top" style="background-image:url('${tpl.topImg}');"></div>` : '<div class="t-top"></div>'}
+        <div class="t-title">${esc(tpl.name)}</div>
+        <div class="t-sub" style="color:${tpl.subtitleColor||'#597a75'};">부제목</div>
+        <div class="t-body">본문 내용 예시...</div>
+        ${tpl.botImg ? `<div class="t-bot" style="background-image:url('${tpl.botImg}');"></div>` : '<div class="t-bot"></div>'}
+      </div>
+      <div class="t-label">${esc(tpl.name)}</div>
+      <button class="del-x" data-id="${tpl.id}">×</button>
+    `;
+    el.addEventListener('click', e => {
+      if (e.target.classList.contains('del-x')) return;
+      selectTemplate(tpl);
+    });
+    el.querySelector('.del-x').addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm(`"${tpl.name}" 템플릿을 삭제하시겠습니까?`)) return;
+      const arr = loadTemplates().filter(t => t.id !== tpl.id);
+      saveTemplates(arr);
+      if (activeTpl && activeTpl.id === tpl.id) {
+        activeTpl = null; formData = {};
+        document.getElementById('inp-fields').innerHTML = '<div class="no-sel">← 템플릿을 선택하세요</div>';
+        document.getElementById('ho-preview').innerHTML = '';
+        document.getElementById('inp-actions').style.display = 'none';
+      }
+      renderMakeSidebar();
+      toast('삭제됐습니다');
+    });
+    grid.appendChild(el);
+  });
+}
+
+function selectTemplate(tpl) {
+  activeTpl = tpl;
+  formData = {};
+  document.querySelectorAll('.tpl-thumb').forEach(el => el.classList.toggle('active', el.dataset.id === tpl.id));
+  renderInputFields();
+  updateHOPreview();
+  document.getElementById('inp-actions').style.display = 'flex';
+}
+
+function renderInputFields() {
+  const panel = document.getElementById('inp-fields');
+  panel.innerHTML = '';
+  ['title','subtitle','body'].forEach(f => {
+    const labels = {title:'제목', subtitle:'부제목', body:'본문'};
+    const g = document.createElement('div');
+    g.className = 'fg';
+    if (f === 'body') {
+      g.innerHTML = `<label>${labels[f]}</label><textarea id="fi-${f}" placeholder="${labels[f]}을(를) 입력하세요" oninput="onFI('${f}',this.value)">${formData[f]||''}</textarea>`;
+    } else {
+      g.innerHTML = `<label>${labels[f]}</label><input type="text" id="fi-${f}" placeholder="${labels[f]}을(를) 입력하세요" value="${esc(formData[f]||'')}" oninput="onFI('${f}',this.value)">`;
+    }
+    panel.appendChild(g);
+  });
+}
+
+function onFI(field, val) {
+  formData[field] = val;
+  updateHOPreview();
+}
+
+function updateHOPreview() {
+  const el = document.getElementById('ho-preview');
+  if (!activeTpl) { el.innerHTML = ''; return; }
+  el.innerHTML = renderHO(activeTpl, formData);
+}
+
+// Save handout to localStorage
+document.getElementById('btn-save-ho').addEventListener('click', () => {
+  if (!activeTpl) return;
+  if (!formData.title && !formData.body) { toast('제목 또는 본문을 입력하세요'); return; }
+  const handouts = loadHandouts();
+  const ho = {
+    id: uid(),
+    title: formData.title || '제목 없음',
+    subtitle: formData.subtitle || '',
+    body: formData.body || '',
+    templateId: activeTpl.id,
+    templateSnapshot: JSON.parse(JSON.stringify(activeTpl)),
+    savedAt: new Date().toISOString(),
+    html: renderHO(activeTpl, formData),
+  };
+  handouts.unshift(ho);
+  saveHandouts(handouts);
+  toast('저장됐습니다! "저장된 핸드아웃"에서 확인하세요');
+});
+
+// Export JPEG
+document.getElementById('btn-jpeg').addEventListener('click', () => exportHO('jpeg'));
+
+// Copy dropdown toggle
+document.getElementById('btn-copy').addEventListener('click', e => {
+  e.stopPropagation();
+  document.getElementById('copy-dropdown').classList.toggle('open');
+});
+document.addEventListener('click', () => document.getElementById('copy-dropdown').classList.remove('open'));
+document.getElementById('btn-copy-png').addEventListener('click', () => exportHO('png'));
+document.getElementById('btn-copy-table').addEventListener('click', () => exportHO('table'));
+
+async function exportHO(mode) {
+  const el = document.getElementById('ho-preview').firstElementChild;
+  if (!el) { toast('먼저 내용을 입력하세요'); return; }
+  document.getElementById('copy-dropdown').classList.remove('open');
+
+  if (mode === 'table') {
+    const html = buildTableHTML(activeTpl, formData);
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': new Blob([html], {type:'text/html'}),
+          'text/plain': new Blob([html], {type:'text/plain'})
+        })
+      ]);
+      toast('표(HTML)가 클립보드에 복사됐습니다!');
+    } catch {
+      toast('복사 실패. 브라우저 권한을 확인해주세요.');
+    }
+    return;
+  }
+
+  spin(true);
+  try {
+    const canvas = await html2canvas(el, {scale:2, useCORS:true, logging:false, backgroundColor:null});
+    if (mode === 'jpeg') {
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `handout-${Date.now()}.jpg`; a.click();
+        URL.revokeObjectURL(url);
+        toast('저장 완료!');
+      }, 'image/jpeg', 0.95);
+    } else {
+      canvas.toBlob(async blob => {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+          toast('PNG가 클립보드에 복사됐습니다!');
+        } catch {
+          toast('복사 실패. JPEG 저장을 이용해주세요.');
+        }
+      }, 'image/png');
+    }
+  } catch(e) { toast('오류: ' + e.message); }
+  finally { spin(false); }
+}
+
+function buildTableHTML(tpl, data) {
+  const bg = tpl.bgColor || '#1b3f3c';
+  const pad = tpl.pad || 28;
+  const w = tpl.width || 480;
+  const font = tpl.font || "'Noto Sans KR',sans-serif";
+  const cellStyle = `background-color:${bg};padding:0;border:none;`;
+
+  const rows = [];
+
+  if (tpl.topImg) {
+    rows.push(`<tr><td style="${cellStyle}"><img src="${tpl.topImg}" width="${w}" style="display:block;width:100%;"></td></tr>`);
+  }
+  if (data.title) {
+    rows.push(`<tr><td style="${cellStyle}padding:18px ${pad}px 6px;text-align:center;font-family:${font};font-size:${tpl.titleSize||26}px;font-weight:${tpl.titleWeight||700};color:${tpl.titleColor||'#c49f58'};">${esc(data.title)}</td></tr>`);
+  }
+  if (data.subtitle) {
+    rows.push(`<tr><td style="${cellStyle}padding:2px ${pad}px 10px;text-align:center;font-family:${font};font-size:${tpl.subtitleSize||18}px;font-weight:${tpl.subtitleWeight||700};color:${tpl.subtitleColor||'#597a75'};">${esc(data.subtitle)}</td></tr>`);
+  }
+  if (data.title || data.subtitle) {
+    if (tpl.divImg) {
+      rows.push(`<tr><td style="${cellStyle}text-align:center;padding:4px 0;"><img src="${tpl.divImg}" style="max-width:60%;display:inline-block;"></td></tr>`);
+    } else {
+      rows.push(`<tr><td style="${cellStyle}padding:0 ${pad}px;"><hr style="border:none;border-top:1px solid ${tpl.titleColor||'#c49f58'}44;margin:0;"></td></tr>`);
+    }
+  }
+  if (data.body) {
+    const bodyHtml = esc(data.body).replace(/\n/g, '<br>');
+    rows.push(`<tr><td style="${cellStyle}padding:10px ${pad}px 18px;font-family:${font};font-size:${tpl.bodySize||14}px;color:${tpl.bodyColor||'#c49f58'};text-align:${tpl.bodyAlign||'left'};line-height:1.85;">${bodyHtml}</td></tr>`);
+  }
+  if (tpl.botImg) {
+    rows.push(`<tr><td style="${cellStyle}"><img src="${tpl.botImg}" width="${w}" style="display:block;width:100%;"></td></tr>`);
+  }
+
+  return `<table width="${w}" cellpadding="0" cellspacing="0" border="0" style="width:${w}px;border-collapse:collapse;background-color:${bg};">${rows.join('')}</table>`;
+}
+
+// ════════════════════════════════
+// VIEW 2 — TEMPLATE BUILDER
+// ════════════════════════════════
+let editingTpl = null;
+let pasteImgs = { top: null, div: null, bot: null };
+let activePasteArea = null;
+
+['pa-top','pa-div','pa-bot'].forEach(id => {
+  const el = document.getElementById(id);
+  const key = id === 'pa-top' ? 'top' : id === 'pa-div' ? 'div' : 'bot';
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.paste-area').forEach(p => p.classList.remove('focused'));
+    el.classList.add('focused');
+    activePasteArea = key;
+    el.focus();
+  });
+  el.addEventListener('blur', () => el.classList.remove('focused'));
+});
+
+document.addEventListener('paste', e => {
+  if (!activePasteArea) return;
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const blob = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = ev => {
+        pasteImgs[activePasteArea] = ev.target.result;
+        const paId = activePasteArea === 'top' ? 'pa-top' : activePasteArea === 'div' ? 'pa-div' : 'pa-bot';
+        const pa = document.getElementById(paId);
+        pa.innerHTML = `<img src="${ev.target.result}"><button class="pa-clear" data-key="${activePasteArea}">✕ 제거</button>`;
+        pa.classList.add('has-img');
+        pa.querySelector('.pa-clear').addEventListener('click', e => {
+          e.stopPropagation();
+          clearPasteImg(paId, activePasteArea);
+        });
+        updateBuilderPreview();
+        toast('이미지가 붙여넣어졌습니다');
+      };
+      reader.readAsDataURL(blob);
+      break;
+    }
+  }
+});
+
+function clearPasteImg(paId, key) {
+  pasteImgs[key] = null;
+  const pa = document.getElementById(paId);
+  const icon = key === 'div' ? '➖' : '🖼';
+  pa.innerHTML = `<div class="pa-label"><span>${icon}</span>클릭 후 Ctrl+V 로 붙여넣기</div>`;
+  pa.classList.remove('has-img');
+  updateBuilderPreview();
+}
+
+const builderInputIds = ['b-name','b-bg','b-tc','b-ts','b-tb','b-sc','b-ss','b-sb','b-bc','b-bsz','b-ba','b-font','b-pad','b-width'];
+builderInputIds.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', updateBuilderPreview);
+});
+
+function getBuilderTpl() {
+  return {
+    id: editingTpl ? editingTpl.id : uid(),
+    name: document.getElementById('b-name').value.trim() || '새 템플릿',
+    bgColor: document.getElementById('b-bg').value,
+    topImg: pasteImgs.top,
+    divImg: pasteImgs.div,
+    botImg: pasteImgs.bot,
+    titleColor: document.getElementById('b-tc').value,
+    titleSize: parseInt(document.getElementById('b-ts').value) || 26,
+    titleWeight: document.getElementById('b-tb').value,
+    subtitleColor: document.getElementById('b-sc').value,
+    subtitleSize: parseInt(document.getElementById('b-ss').value) || 18,
+    subtitleWeight: document.getElementById('b-sb').value,
+    bodyColor: document.getElementById('b-bc').value,
+    bodySize: parseInt(document.getElementById('b-bsz').value) || 14,
+    bodyAlign: document.getElementById('b-ba').value,
+    font: document.getElementById('b-font').value,
+    pad: parseInt(document.getElementById('b-pad').value) || 28,
+    width: parseInt(document.getElementById('b-width').value) || 480,
+  };
+}
+
+function updateBuilderPreview() {
+  const tpl = getBuilderTpl();
+  const preview = document.getElementById('builder-ho-preview');
+  const sample = {title: '제목 예시', subtitle: '부제목 예시', body: '본문 내용이 여기에 표시됩니다.\n두 번째 줄의 내용입니다.'};
+  preview.innerHTML = renderHO(tpl, sample);
+  const inner = document.getElementById('builder-preview-inner');
+  const w = tpl.width || 480;
+  const maxW = Math.min(600, inner.parentElement.offsetWidth - 4);
+  const scale = maxW / w;
+  if (scale < 1) {
+    preview.style.transform = `scale(${scale})`;
+    preview.style.transformOrigin = 'top left';
+    inner.style.width = Math.round(w * scale) + 'px';
+    inner.style.overflow = 'hidden';
+  } else {
+    preview.style.transform = '';
+    inner.style.width = '';
+  }
+}
+
+function openBuilderForm(tpl) {
+  editingTpl = tpl || null;
+  pasteImgs = { top: tpl?.topImg || null, div: tpl?.divImg || null, bot: tpl?.botImg || null };
+  activePasteArea = null;
+
+  document.getElementById('builder-empty').style.display = 'none';
+  document.getElementById('builder-form').style.display = 'block';
+  document.getElementById('builder-title').textContent = tpl ? `템플릿 수정: ${tpl.name}` : '새 템플릿 만들기';
+
+  document.getElementById('b-name').value = tpl?.name || '';
+  document.getElementById('b-bg').value = tpl?.bgColor || '#1b3f3c';
+  document.getElementById('b-tc').value = tpl?.titleColor || '#c49f58';
+  document.getElementById('b-ts').value = tpl?.titleSize || 26;
+  document.getElementById('b-tb').value = tpl?.titleWeight || '700';
+  document.getElementById('b-sc').value = tpl?.subtitleColor || '#597a75';
+  document.getElementById('b-ss').value = tpl?.subtitleSize || 18;
+  document.getElementById('b-sb').value = tpl?.subtitleWeight || '700';
+  document.getElementById('b-bc').value = tpl?.bodyColor || '#c49f58';
+  document.getElementById('b-bsz').value = tpl?.bodySize || 14;
+  document.getElementById('b-ba').value = tpl?.bodyAlign || 'left';
+  document.getElementById('b-font').value = tpl?.font || "'Nanum Myeongjo',serif";
+  document.getElementById('b-pad').value = tpl?.pad || 28;
+  document.getElementById('b-width').value = tpl?.width || 480;
+
+  ['top','div','bot'].forEach(key => {
+    const paId = key === 'top' ? 'pa-top' : key === 'div' ? 'pa-div' : 'pa-bot';
+    const pa = document.getElementById(paId);
+    if (pasteImgs[key]) {
+      pa.innerHTML = `<img src="${pasteImgs[key]}"><button class="pa-clear" data-key="${key}">✕ 제거</button>`;
+      pa.classList.add('has-img');
+      pa.querySelector('.pa-clear').addEventListener('click', e => {
+        e.stopPropagation();
+        clearPasteImg(paId, key);
+      });
+    } else {
+      const icon = key === 'div' ? '➖' : '🖼';
+      pa.innerHTML = `<div class="pa-label"><span>${icon}</span>클릭 후 Ctrl+V 로 붙여넣기</div>`;
+      pa.classList.remove('has-img');
+    }
+  });
+
+  updateBuilderPreview();
+}
+
+function closeBuilderForm() {
+  editingTpl = null;
+  pasteImgs = {top:null,div:null,bot:null};
+  activePasteArea = null;
+  document.getElementById('builder-empty').style.display = 'block';
+  document.getElementById('builder-form').style.display = 'none';
+}
+
+document.getElementById('new-tpl-btn').addEventListener('click', () => {
+  document.querySelectorAll('.tpl-list-item').forEach(el => el.classList.remove('active'));
+  openBuilderForm(null);
+});
+
+document.getElementById('b-cancel-btn').addEventListener('click', () => {
+  closeBuilderForm();
+  document.querySelectorAll('.tpl-list-item').forEach(el => el.classList.remove('active'));
+});
+
+document.getElementById('b-save-btn').addEventListener('click', () => {
+  const name = document.getElementById('b-name').value.trim();
+  if (!name) { toast('템플릿 이름을 입력하세요'); return; }
+  const tpl = getBuilderTpl();
+  let templates = loadTemplates();
+  if (editingTpl) {
+    templates = templates.map(t => t.id === editingTpl.id ? tpl : t);
+    toast(`"${name}" 저장 완료!`);
+  } else {
+    templates.push(tpl);
+    toast(`"${name}" 템플릿이 추가됐습니다!`);
+  }
+  saveTemplates(templates);
+  editingTpl = tpl;
+  renderTplList();
+  renderMakeSidebar();
+  document.querySelectorAll('.tpl-list-item').forEach(el => el.classList.toggle('active', el.dataset.id === tpl.id));
+});
+
+function renderTplList() {
+  const templates = loadTemplates();
+  const list = document.getElementById('tpl-list-items');
+  const empty = document.getElementById('tpl-list-empty');
+  list.innerHTML = '';
+  empty.style.display = templates.length ? 'none' : 'block';
+
+  templates.forEach(tpl => {
+    const el = document.createElement('div');
+    el.className = 'tpl-list-item';
+    el.dataset.id = tpl.id;
+    el.innerHTML = `
+      <span class="tl-name">${esc(tpl.name)}</span>
+      <button class="tl-del" data-id="${tpl.id}" title="삭제">×</button>
+    `;
+    el.addEventListener('click', e => {
+      if (e.target.classList.contains('tl-del')) return;
+      document.querySelectorAll('.tpl-list-item').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+      openBuilderForm(tpl);
+    });
+    el.querySelector('.tl-del').addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm(`"${tpl.name}" 삭제?`)) return;
+      let arr = loadTemplates().filter(t => t.id !== tpl.id);
+      saveTemplates(arr);
+      if (editingTpl && editingTpl.id === tpl.id) closeBuilderForm();
+      renderTplList();
+      renderMakeSidebar();
+      toast('삭제됐습니다');
+    });
+    list.appendChild(el);
+  });
+}
+
+// ════════════════════════════════
+// VIEW 3 — SAVED HANDOUTS
+// ════════════════════════════════
+function renderSavedView() {
+  const handouts = loadHandouts();
+  const grid = document.getElementById('saved-grid');
+  grid.innerHTML = '';
+
+  if (!handouts.length) {
+    grid.innerHTML = '<div class="saved-empty">저장된 핸드아웃이 없습니다.</div>';
+    return;
+  }
+
+  handouts.forEach(ho => {
+    const card = document.createElement('div');
+    card.className = 'saved-card';
+
+    const preview = document.createElement('div');
+    preview.className = 'sc-preview';
+    const inner = document.createElement('div');
+    inner.innerHTML = ho.html;
+    const child = inner.firstElementChild;
+    if (child) {
+      const w = parseInt(child.style.width) || 480;
+      const scale = 200 / w;
+      child.style.transform = `scale(${scale})`;
+      child.style.transformOrigin = 'top left';
+      child.style.display = 'block';
+      preview.style.height = '140px';
+      preview.style.overflow = 'hidden';
+      preview.appendChild(child);
+    }
+
+    const date = new Date(ho.savedAt).toLocaleDateString('ko-KR');
+    card.innerHTML = `
+      <div class="sc-meta">
+        <span class="sc-title">${esc(ho.title)} <span style="color:#475569;font-size:10px;">${date}</span></span>
+        <button class="sc-del" data-id="${ho.id}" title="삭제">×</button>
+      </div>
+    `;
+    card.insertBefore(preview, card.firstChild);
+
+    card.addEventListener('click', e => {
+      if (e.target.classList.contains('sc-del')) return;
+      reopenHandout(ho);
+    });
+    card.querySelector('.sc-del').addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm('삭제하시겠습니까?')) return;
+      const arr = loadHandouts().filter(h => h.id !== ho.id);
+      saveHandouts(arr);
+      renderSavedView();
+      toast('삭제됐습니다');
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+function reopenHandout(ho) {
+  const tpl = ho.templateSnapshot;
+  if (!tpl) { toast('템플릿 정보를 찾을 수 없습니다'); return; }
+  activeTpl = tpl;
+  formData = { title: ho.title, subtitle: ho.subtitle, body: ho.body };
+  renderMakeSidebar();
+  renderInputFields();
+  updateHOPreview();
+  document.getElementById('inp-actions').style.display = 'flex';
+  document.querySelector('[data-view="v-make"]').click();
+  toast(`"${ho.title}" 불러왔습니다`);
+}
+
+// ════════════════════════════════
+// EXPORT / IMPORT TEMPLATES
+// ════════════════════════════════
+document.getElementById('export-tpl-btn').addEventListener('click', () => {
+  const templates = loadTemplates();
+  if (!templates.length) { toast('내보낼 템플릿이 없습니다'); return; }
+  const json = JSON.stringify(templates, null, 2);
+  const blob = new Blob([json], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `handout-templates-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast(`${templates.length}개 템플릿을 내보냈습니다`);
+});
+
+document.getElementById('import-tpl-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!Array.isArray(imported)) throw new Error('올바른 형식이 아닙니다');
+      const existing = loadTemplates();
+      const existingIds = new Set(existing.map(t => t.id));
+      const newOnes = imported.filter(t => t.id && t.name);
+      // Merge: keep existing, add new ones (skip duplicates by id, rename conflicts)
+      const merged = [...existing];
+      let added = 0, skipped = 0;
+      newOnes.forEach(t => {
+        if (existingIds.has(t.id)) { skipped++; return; }
+        merged.push(t);
+        existingIds.add(t.id);
+        added++;
+      });
+      saveTemplates(merged);
+      renderTplList();
+      renderMakeSidebar();
+      toast(`${added}개 추가, ${skipped}개 중복 건너뜀`);
+    } catch(err) {
+      toast('가져오기 실패: ' + err.message);
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+// ════════════════════════════════
+// INIT
+// ════════════════════════════════
+renderMakeSidebar();
+renderTplList();
+</script>
+</body>
+</html>
